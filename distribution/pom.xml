@@ -3,20 +3,20 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>io.snyk.plugins</groupId>
-    <artifactId>artifactory-snyk-security-plugin</artifactId>
+    <groupId>io.scs.plugins</groupId>
+    <artifactId>artifactory-scs-security-plugin</artifactId>
     <version>${revision}</version>
   </parent>
 
-  <groupId>io.snyk.plugins.artifactory</groupId>
+  <groupId>io.scs.plugins.artifactory</groupId>
   <artifactId>distribution</artifactId>
   <packaging>pom</packaging>
 
-  <name>Artifactory Snyk Security :: Distribution</name>
+  <name>Artifactory scs Security :: Distribution</name>
 
   <dependencies>
     <dependency>
-      <groupId>io.snyk.plugins.artifactory</groupId>
+      <groupId>io.scs.plugins.artifactory</groupId>
       <artifactId>core</artifactId>
       <version>${revision}</version>
     </dependency>

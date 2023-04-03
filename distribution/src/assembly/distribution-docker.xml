@@ -13,11 +13,11 @@
   </fileSets>
   <files>
     <file>
-      <source>../core/src/main/groovy/io/snyk/plugins/artifactory/snykSecurityPlugin.groovy</source>
+      <source>../core/src/main/groovy/io/scs/plugins/artifactory/scsSecurityPlugin.groovy</source>
       <outputDirectory>etc/plugins</outputDirectory>
     </file>
     <file>
-      <source>../core/src/main/groovy/io/snyk/plugins/artifactory/snykSecurityPlugin.version</source>
+      <source>../core/src/main/groovy/io/scs/plugins/artifactory/scsSecurityPlugin.version</source>
       <outputDirectory>etc/plugins/lib</outputDirectory>
       <filtered>true</filtered>
     </file>

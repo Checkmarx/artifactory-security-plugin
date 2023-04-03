@@ -3,20 +3,20 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>io.snyk.plugins</groupId>
-    <artifactId>artifactory-snyk-security-plugin</artifactId>
+    <groupId>io.scs.plugins</groupId>
+    <artifactId>artifactory-scs-security-plugin</artifactId>
     <version>${revision}</version>
   </parent>
 
-  <groupId>io.snyk.plugins.artifactory</groupId>
+  <groupId>io.scs.plugins.artifactory</groupId>
   <artifactId>core</artifactId>
   <packaging>jar</packaging>
 
-  <name>Artifactory Snyk Security :: Core</name>
+  <name>Artifactory scs Security :: Core</name>
 
   <dependencies>
     <dependency>
-      <groupId>io.snyk</groupId>
+      <groupId>io.scs</groupId>
       <artifactId>sdk</artifactId>
       <version>${revision}</version>
     </dependency>
@@ -36,6 +36,7 @@
       <artifactId>junit-jupiter-engine</artifactId>
       <scope>test</scope>
     </dependency>
+
     <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
     <dependency>
       <groupId>org.mockito</groupId>
@@ -60,7 +61,7 @@
             <configuration>
               <appendAssemblyId>false</appendAssemblyId>
               <attach>false</attach>
-              <finalName>artifactory-snyk-security-core</finalName>
+              <finalName>artifactory-scs-security-core</finalName>
               <outputDirectory>${project.build.directory}/maven-plugin-assembly</outputDirectory>
               <descriptors>
                 <descriptor>src/assembly/descriptor.xml</descriptor>

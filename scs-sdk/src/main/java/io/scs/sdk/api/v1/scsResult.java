@@ -50,4 +50,16 @@ public class scsResult<T> {
       return new scsResult<>(response);
     }
   }
+  public static <ResType> scsResult<ResType> createResult(HttpResponse response, String responseString,int status, Class<ResType> resultType) throws IOException {
+    if (status == 200) {
+//      String responseBody = response.body();
+      String responseBody = responseString.substring(1,responseString.length() - 1);
+      ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      var res = objectMapper.readValue(responseBody, resultType);
+//      var res = objectMapper.readValue(responseBody, objectMapper.getTypeFactory().constructCollectionType(List.class, resultType));
+      return new scsResult<>(status, res, responseBody, response);
+    } else {
+      return new scsResult<>(response);
+    }
+  }
 }

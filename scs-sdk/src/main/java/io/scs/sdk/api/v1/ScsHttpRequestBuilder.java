@@ -55,7 +55,7 @@ public class ScsHttpRequestBuilder {
       .POST(body)
       .uri(URI.create(config.baseUrl))
       .timeout(config.timeout)
-      .setHeader("Authorization", config.token)
+      .setHeader("Authorization", String.format("token %s", config.token))
       .setHeader("User-Agent", config.userAgent)
       .build();
   }

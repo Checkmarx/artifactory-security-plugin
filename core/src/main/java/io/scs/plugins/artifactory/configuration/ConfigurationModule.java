@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import static io.scs.plugins.artifactory.configuration.PluginConfiguration.API_ORGANIZATION;
 import static io.scs.plugins.artifactory.configuration.PluginConfiguration.API_TOKEN;
 import static java.lang.String.format;
 
@@ -36,9 +35,5 @@ public class ConfigurationModule {
       throw new IllegalArgumentException(format("'%s' must not be null or empty", API_TOKEN.propertyKey()));
     }
 
-    final String apiOrganization = getProperty(API_ORGANIZATION);
-    if (apiOrganization == null || apiOrganization.isEmpty()) {
-      throw new IllegalArgumentException(format("'%s' must not be null or empty", API_ORGANIZATION.propertyKey()));
-    }
   }
 }

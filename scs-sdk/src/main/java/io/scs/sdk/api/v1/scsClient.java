@@ -4,6 +4,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
@@ -13,6 +14,7 @@ import java.net.http.HttpResponse;
 import java.security.SecureRandom;
 import java.util.Optional;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.util.zip.GZIPInputStream;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -51,9 +54,10 @@ public class scsClient {
       JSONObject element = (JSONObject) r;
       JSONArray risks = (JSONArray) (element.get("risks"));
       if (risks.size() > 0) {
-        LOG.error(("Unsafe package " + element.get("type") + ":" + element.get("name") + ":" + element.get("version")));
+        LOG.error(("Unsafe package " + element.get("type") + ":" + element.get("name") + ":" + element.get("version") + "risks: " + element.get("risks")));
         throw new Exception("Unsafe package");
       }
+
     }
   }
   public scsClient(ScsConfig config) throws Exception {
@@ -100,27 +104,13 @@ public class scsClient {
   public scsResult<TestResult> testMaven(String groupId, String artifactId, String version) throws Exception {
     String type = "mvn";
     String pkgName = String.format("%s:%s",groupId,artifactId);
-    String str = String.format("{\"type\":\"%s\",\"Name\":\"%s\",\"Version\":\"%s\"}", type, pkgName, version);
-
-    HttpRequest request = ScsHttpRequestBuilder.create(config)
-      .build(HttpRequest.BodyPublishers.ofString(str));
-    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    isMalcious(response.body());
-
-    return scsResult.createResult(response, TestResult.class);
+    return getQueryResults(pkgName, version, type);
   }
 
   public scsResult<TestResult> testNpm(String packageName, String version) throws Exception {
 
       String type = "npm";
-      String str = String.format("{\"type\":\"%s\",\"Name\":\"%s\",\"Version\":\"%s\"}", type, packageName, version);
-
-      HttpRequest request = ScsHttpRequestBuilder.create(config)
-        .build(HttpRequest.BodyPublishers.ofString(str));
-      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      isMalcious(response.body());
-
-      return scsResult.createResult(response, TestResult.class);
+    return getQueryResults(packageName, version, type);
   }
 
   public scsResult<TestResult> testRubyGems(String gemName, String version, Optional<String> organisation) throws IOException, InterruptedException {
@@ -155,7 +145,7 @@ public class scsClient {
       http.setDoOutput(true);
 
 
-      byte[] out = String.format("{\"type\":\"%s\",\"Name\":\"%s\",\"Version\":\"%s\",\"Token\":\"%s\"}", type, packageName, version, token).getBytes(StandardCharsets.UTF_8);
+      byte[] out = String.format("[{\"type\":\"%s\",\"name\":\"%s\",\"version\":\"%s\",\"Token\":\"%s\"]}", type, packageName, version, token).getBytes(StandardCharsets.UTF_8);
       int length = out.length;
 
       http.setFixedLengthStreamingMode(length);
@@ -207,27 +197,58 @@ public class scsClient {
   public scsResult<TestResult> testPip(String packageName, String version) throws Exception {
 
     String type = "pypi";
-    String str = String.format("{\"type\":\"%s\",\"Name\":\"%s\",\"Version\":\"%s\"}", type, packageName, version);
-
-    HttpRequest request = ScsHttpRequestBuilder.create(config)
-      .build(HttpRequest.BodyPublishers.ofString(str));
-    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    isMalcious(response.body());
-
-    return scsResult.createResult(response, TestResult.class);
+    return getQueryResults(packageName, version, type);
   }
 
   public scsResult<TestResult> testNugget(String packageName, String version) throws Exception {
 
     String type = "nuget";
-    String str = String.format("{\"type\":\"%s\",\"Name\":\"%s\",\"Version\":\"%s\"}", type, packageName, version);
+    return getQueryResults(packageName, version, type);
+  }
+
+  public static InputStream getDecodedInputStream(
+    HttpResponse<InputStream> httpResponse) throws Exception {
+    String encoding = determineContentEncoding(httpResponse);
+    try {
+      switch (encoding) {
+        case "":
+          return httpResponse.body();
+        case "gzip":
+          return new GZIPInputStream(httpResponse.body());
+        default:
+          throw new UnsupportedOperationException(
+            "Unexpected Content-Encoding: " + encoding);
+      }
+    } catch (IOException ioe) {
+      throw new Exception(ioe);
+    }
+  }
+
+  public static String determineContentEncoding(
+    HttpResponse<?> httpResponse) {
+    return httpResponse.headers().firstValue("Content-Encoding").orElse("");
+  }
+
+  @NotNull
+  private scsResult<TestResult> getQueryResults(String packageName, String version, String type) throws Exception {
+    String str = String.format("[{\"type\":\"%s\",\"name\":\"%s\",\"version\":\"%s\"}]", type, packageName, version);
 
     HttpRequest request = ScsHttpRequestBuilder.create(config)
       .build(HttpRequest.BodyPublishers.ofString(str));
-    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    isMalcious(response.body());
+    HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+    LOG.debug("sent request to api and got response " + response);
+    if (response.statusCode() == 401)
+      throw new Exception("Unauthorized");
+    if(response.statusCode() == 400)
+      throw new Exception("invalid request");
 
-    return scsResult.createResult(response, TestResult.class);
+    String decodedResponse = (new String(getDecodedInputStream(response).readAllBytes() , StandardCharsets.UTF_8));;
+
+    isMalcious(decodedResponse);
+
+    //beware that it expects HttpResponse<String> and you provided <InputStream>
+    return scsResult.createResult(response, decodedResponse, response.statusCode(), TestResult.class);
+
   }
 
 }

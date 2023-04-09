@@ -68,7 +68,8 @@ class PythonScanner implements PackageScanner {
         details.version
       );
     } catch (Exception e) {
-      LOG.error("error in scan pypi package module pypiscanner: ");
+      if (!(e.toString().contains("Unsafe package")))
+          LOG.error("error in scan pypi package module pypiscanner: " + e);
       throw new ScsAPIFailureException(e);
     }
 

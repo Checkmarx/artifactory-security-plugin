@@ -2,9 +2,8 @@ package io.scs.plugins.artifactory.configuration;
 
 public enum PluginConfiguration implements Configuration {
   // general settings
-  API_URL("scs.api.url", "https://api.dusti.co/v1/sca/packages"),
+  API_URL("scs.api.url", "https://api.dusti.co/v1/packages/"),
   API_TOKEN("scs.api.token", ""),
-  API_ORGANIZATION("scs.api.organization", ""),
   API_SSL_CERTIFICATE_PATH("scs.api.sslCertificatePath", ""),
   API_TRUST_ALL_CERTIFICATES("scs.api.trustAllCertificates", "false"),
   API_TIMEOUT("scs.api.timeout", "60000"),

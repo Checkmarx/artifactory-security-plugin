@@ -53,7 +53,8 @@ class NpmScanner implements PackageScanner {
         details.version
       );
     } catch (Exception e) {
-      LOG.error("error in scan npm package module npmscanner: ");
+      if (!(e.toString().contains("Unsafe package")))
+          LOG.error("error in scan npm package module npmscanner: " + e);
       throw new ScsAPIFailureException(e);
     }
 

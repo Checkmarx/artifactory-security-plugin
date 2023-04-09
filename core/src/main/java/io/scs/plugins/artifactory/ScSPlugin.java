@@ -53,7 +53,6 @@ public class ScSPlugin {
 
       LOG.info("Creating api client and modules...");
       LOG.info("BaseURL:" + configurationModule.getPropertyOrDefault(API_URL));
-      LOG.info("Organization:" + configurationModule.getPropertyOrDefault(API_ORGANIZATION));
       String token = configurationModule.getPropertyOrDefault(API_TOKEN);
       if (null != token && token.length() > 4) {
         token = token.substring(0, 4) + "...";
@@ -130,7 +129,6 @@ public class ScSPlugin {
     LOG.debug("scs Plugin Configuration:");
     configurationModule.getPropertyEntries().stream()
       .filter(entry -> !API_TOKEN.propertyKey().equals(entry.getKey()))
-      .filter(entry -> !API_ORGANIZATION.propertyKey().equals(entry.getKey()))
       .map(entry -> entry.getKey() + "=" + entry.getValue())
       .sorted()
       .forEach(LOG::debug);
@@ -174,7 +172,6 @@ public class ScSPlugin {
 
     final scsClient scsClient = new scsClient(config);
     LOG.info("created scsClient");
-    String org = configurationModule.getPropertyOrDefault(API_ORGANIZATION);
     LOG.info("got configuration modules property or default");
 //    LOG.info("getting notification settings");
 //    var res = scsClient.getNotificationSettings(org);

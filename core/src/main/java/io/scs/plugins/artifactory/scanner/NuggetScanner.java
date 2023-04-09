@@ -103,7 +103,8 @@ public class NuggetScanner implements PackageScanner{
         details.version
       );
     } catch (Exception e) {
-      LOG.error("error in scan nuget package module nugetscanner: ");
+      if (!(e.toString().contains("Unsafe package")))
+        LOG.error("error in scan nuget package module nugetscanner: " + e);
       throw new ScsAPIFailureException(e);
     }
 

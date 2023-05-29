@@ -15,11 +15,10 @@ final class PropertyLoader {
   private static final String DIRECTORY_NOT_FOUND_ERROR_MESSAGE = "Directory '%s' not found";
   private static final String FILE_NOT_FOUND_ERROR_MESSAGE = "File '%s' not found";
 
-  private static final String PLUGIN_VERSION_FILE = "scsSecurityPlugin.version";
-  private static final String PROPERTY_FILE = "scsSecurityPlugin.properties";
+  private static final String PLUGIN_VERSION_FILE = "CheckmarxSecurityPlugin.version";
+  private static final String PROPERTY_FILE = "CheckmarxSecurityPlugin.properties";
 
   private PropertyLoader() {
-    //squid:S1118
   }
 
   static Properties loadProperties(@Nonnull File pluginsDirectory) throws IOException {

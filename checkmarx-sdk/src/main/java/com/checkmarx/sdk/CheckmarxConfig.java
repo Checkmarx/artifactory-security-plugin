@@ -2,7 +2,7 @@ package com.checkmarx.sdk;
 
 import java.time.Duration;
 
-public class ScsConfig {
+public class CheckmarxConfig {
   public String baseUrl;
   public String token;
   public final String userAgent;
@@ -12,7 +12,7 @@ public class ScsConfig {
   public final Integer httpProxyPort;
   public final Duration timeout;
 
-  private ScsConfig(
+  private CheckmarxConfig(
     String baseUrl,
     String token,
     String userAgent,
@@ -36,14 +36,14 @@ public class ScsConfig {
     return new Builder();
   }
 
-  public static ScsConfig withDefaults() {
+  public static CheckmarxConfig withDefaults() {
     return newBuilder().build();
   }
 
   public static class Builder {
     private String token;
     private String baseUrl = "https://api.dusti.co/v1/";
-    private String userAgent = "scs-sdk-java";
+    private String userAgent = "cx-artifactory-plugin";
     private boolean trustAllCertificates = false;
     private String sslCertificatePath = "";
     private String httpProxyHost = "";
@@ -93,8 +93,8 @@ public class ScsConfig {
       return this;
     }
 
-    public ScsConfig build() {
-      return new ScsConfig(
+    public CheckmarxConfig build() {
+      return new CheckmarxConfig(
         baseUrl,
         token,
         userAgent,

@@ -2,9 +2,9 @@ package com.checkmarx.plugins.artifactory.scanner;
 
 import com.checkmarx.plugins.artifactory.configuration.ConfigurationModule;
 import com.checkmarx.plugins.artifactory.exception.CannotScanException;
-import com.checkmarx.plugins.artifactory.exception.ScsAPIFailureException;
-import com.checkmarx.sdk.api.v1.scsClient;
-import com.checkmarx.sdk.api.v1.scsResult;
+import com.checkmarx.plugins.artifactory.exception.CheckmarxAPIFailureException;
+import com.checkmarx.sdk.api.v1.CheckmarxClient;
+import com.checkmarx.sdk.api.v1.CheckmarxResult;
 import com.checkmarx.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
@@ -23,11 +23,11 @@ public class NuggetScanner implements PackageScanner{
   private static final Logger LOG = getLogger(NuggetScanner.class);
 
   private final ConfigurationModule configurationModule;
-  private final com.checkmarx.sdk.api.v1.scsClient scsClient;
+  private final CheckmarxClient checkmarxClient;
 
-  NuggetScanner(ConfigurationModule configurationModule, scsClient scsClient) {
+  NuggetScanner(ConfigurationModule configurationModule, CheckmarxClient checkmarxClient) {
     this.configurationModule = configurationModule;
-    this.scsClient = scsClient;
+    this.checkmarxClient = checkmarxClient;
   }
 
   public static Optional<NuggetScanner.ModuleURLDetails> getModuleDetailsFromFileLayoutInfo(FileLayoutInfo fileLayoutInfo) {
@@ -69,9 +69,6 @@ public class NuggetScanner implements PackageScanner{
   public static Optional<NuggetScanner.ModuleURLDetails> getModuleDetailsFromRequest(Request request) {
     LOG.debug("Repo uri is " + request.getUri());
     LOG.debug("Repo request " + request.toString());
-//    Pattern pattern = Pattern.compile("^.+:.+/.+/.+/(?<packageName>.+)-(?<packageVersion>\\d+(?:\\.[A-Za-z0-9]+)*).*\\.(?:nupkg)$");
-//    Matcher matcher = pattern.matcher(request.getUri());
-//    if (matcher.matches()) {
       String packageName;
       String packageVersion;
       String[] arrOfStr = request.getUri().split("/", -2);
@@ -94,20 +91,19 @@ public class NuggetScanner implements PackageScanner{
       .orElseGet(() -> getModuleDetailsFromRequest(request)
         .orElseThrow(() -> new CannotScanException("Module details not provided."))));
 
-    scsResult<TestResult> result;
+    CheckmarxResult<TestResult> result;
     try {
-      result = scsClient.testNugget(
+      result = checkmarxClient.testNugget(
         details.name,
         details.version
       );
     } catch (Exception e) {
       if (!(e.toString().contains("Unsafe package")))
         LOG.error("error in scan nuget package module nugetscanner: " + e);
-      throw new ScsAPIFailureException(e);
+      throw new CheckmarxAPIFailureException(e);
     }
 
-    TestResult testResult = result.get().orElseThrow(() -> new ScsAPIFailureException(result));
-//    testResult.packageDetailsURL = getModuleDetailsURL(details);
+    TestResult testResult = result.get().orElseThrow(() -> new CheckmarxAPIFailureException(result));
     return testResult;
   }
 

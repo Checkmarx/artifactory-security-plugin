@@ -2,8 +2,9 @@ package com.checkmarx.plugins.artifactory.scanner;
 
 import com.checkmarx.plugins.artifactory.configuration.ConfigurationModule;
 import com.checkmarx.plugins.artifactory.exception.CannotScanException;
-import com.checkmarx.plugins.artifactory.exception.ScsAPIFailureException;
-import com.checkmarx.sdk.api.v1.scsResult;
+import com.checkmarx.plugins.artifactory.exception.CheckmarxAPIFailureException;
+import com.checkmarx.sdk.api.v1.CheckmarxClient;
+import com.checkmarx.sdk.api.v1.CheckmarxResult;
 import com.checkmarx.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
@@ -19,11 +20,11 @@ class MavenScanner implements PackageScanner {
   private static final Logger LOG = getLogger(MavenScanner.class);
 
   private final ConfigurationModule configurationModule;
-  private final com.checkmarx.sdk.api.v1.scsClient scsClient;
+  private final CheckmarxClient checkmarxClient;
 
-  MavenScanner(ConfigurationModule configurationModule, com.checkmarx.sdk.api.v1.scsClient scsClient) {
+  MavenScanner(ConfigurationModule configurationModule, CheckmarxClient checkmarxClient) {
     this.configurationModule = configurationModule;
-    this.scsClient = scsClient;
+    this.checkmarxClient = checkmarxClient;
   }
 
   public TestResult scan(FileLayoutInfo fileLayoutInfo, RepoPath repoPath, Request request) {
@@ -34,19 +35,18 @@ class MavenScanner implements PackageScanner {
     String artifactVersion = Optional.ofNullable(fileLayoutInfo.getBaseRevision())
       .orElseThrow(() -> new CannotScanException("Artifact Version not provided."));
 
-    scsResult<TestResult> result;
+    CheckmarxResult<TestResult> result;
     try {
-      result = scsClient.testMaven(
+      result = checkmarxClient.testMaven(
         groupID,
         artifactID,
         artifactVersion
       );
     } catch (Exception e) {
-      throw new ScsAPIFailureException(e);
+      throw new CheckmarxAPIFailureException(e);
     }
 
-    TestResult testResult = result.get().orElseThrow(() -> new ScsAPIFailureException(result));
-//    testResult.packageDetailsURL = getArtifactDetailsURL(groupID, artifactID, artifactVersion);
+    TestResult testResult = result.get().orElseThrow(() -> new CheckmarxAPIFailureException(result));
     return testResult;
   }
 }

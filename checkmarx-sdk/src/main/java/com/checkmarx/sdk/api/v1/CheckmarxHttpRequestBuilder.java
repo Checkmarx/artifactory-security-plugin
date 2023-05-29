@@ -1,6 +1,6 @@
 package com.checkmarx.sdk.api.v1;
 
-import com.checkmarx.sdk.ScsConfig;
+import com.checkmarx.sdk.CheckmarxConfig;
 
 import javax.annotation.Nonnull;
 import java.net.URI;
@@ -13,29 +13,29 @@ import java.util.stream.Collectors;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 
-public class ScsHttpRequestBuilder {
-  private final ScsConfig config;
+public class CheckmarxHttpRequestBuilder {
+  private final CheckmarxConfig config;
   private final HashMap<String, String> queryParams = new HashMap<>();
   private String path = "";
 
-  private ScsHttpRequestBuilder(@Nonnull ScsConfig config) {
+  private CheckmarxHttpRequestBuilder(@Nonnull CheckmarxConfig config) {
     this.config = config;
   }
 
-  public static ScsHttpRequestBuilder create(@Nonnull ScsConfig config) {
-    return new ScsHttpRequestBuilder(config);
+  public static CheckmarxHttpRequestBuilder create(@Nonnull CheckmarxConfig config) {
+    return new CheckmarxHttpRequestBuilder(config);
   }
 
-  public ScsHttpRequestBuilder withPath(@Nonnull String path) {
+  public CheckmarxHttpRequestBuilder withPath(@Nonnull String path) {
     this.path = path;
     return this;
   }
 
-  public ScsHttpRequestBuilder withQueryParam(String key, String value) {
+  public CheckmarxHttpRequestBuilder withQueryParam(String key, String value) {
     return withQueryParam(key, Optional.ofNullable(value));
   }
 
-  public ScsHttpRequestBuilder withQueryParam(String key, Optional<String> value) {
+  public CheckmarxHttpRequestBuilder withQueryParam(String key, Optional<String> value) {
     value.ifPresent(v -> this.queryParams.put(key, v));
     return this;
   }

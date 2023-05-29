@@ -13,12 +13,6 @@ public class TestResult implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-//  @JsonProperty("ok")
-//  public boolean success;
-//  @JsonProperty("dependencyCount")
-//  public int dependencyCount;
-//  @JsonProperty("org")
-//  public Organisation organisation;
   @JsonProperty("type")
   public String packageManager;
 
@@ -34,7 +28,4 @@ public class TestResult implements Serializable {
   @JsonProperty("risks")
   public List<String> risks;
 
-
-
-//  public String packageDetailsURL;
 }

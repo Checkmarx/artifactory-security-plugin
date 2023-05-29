@@ -35,18 +35,18 @@ jobs:
 
       - name: Build plugin
         env:
-          TEST_SNYK_TOKEN: ${{ secrets.TEST_SNYK_TOKEN }}
-          TEST_SNYK_ORG: ${{ secrets.TEST_SNYK_ORG }}
+          TEST_CHECKMARX_TOKEN: ${{ secrets.TEST_CHECKMARX_TOKEN }}
+          TEST_CHECKMARX_ORG: ${{ secrets.TEST_CHECKMARX_ORG }}
         run: |
           ./mvnw package -DskipTests --show-version --batch-mode --no-transfer-progress --errors -Drevision=${{ steps.metadata.outputs.tag }}
           cd ${GITHUB_WORKSPACE}/distribution/target
-          sha256sum artifactory-snyk-security-plugin-${{ steps.metadata.outputs.tag }}.zip > artifactory-snyk-security-plugin-${{ steps.metadata.outputs.tag }}.zip.sha256
-          unzip artifactory-snyk-security-plugin-${{ steps.metadata.outputs.tag }}.zip
+          sha256sum artifactory-security-plugin-${{ steps.metadata.outputs.tag }}.zip > artifactory-security-plugin-${{ steps.metadata.outputs.tag }}.zip.sha256
+          unzip artifactory-security-plugin-${{ steps.metadata.outputs.tag }}.zip
           chmod a+rwx -R plugins/
-          sed -i "s/snyk.api.token=/snyk.api.token=${TEST_SNYK_TOKEN}/" plugins/snykSecurityPlugin.properties
-          sed -i "s/snyk.api.organization=/snyk.api.organization=${TEST_SNYK_ORG}/" plugins/snykSecurityPlugin.properties
+          sed -i "s/checkmarx.api.token=/checkmarx.api.token=${TEST_CHECKMARX_TOKEN}/" plugins/CheckmarxSecurityPlugin.properties
+          sed -i "s/checkmarx.api.organization=/checkmarx.api.organization=${TEST_CHECKMARX_ORG}/" plugins/CheckmarxSecurityPlugin.properties
 
-      - name: Start the Artifactory container with Snyk plugin mounted
+      - name: Start the Artifactory container with checkmarx plugin mounted
         run: docker run -d --name artifactory -p 8082:8082 -v ${GITHUB_WORKSPACE}/distribution/target/plugins:/opt/jfrog/artifactory/var/etc/artifactory/plugins releases-docker.jfrog.io/jfrog/artifactory-pro:${{ matrix.artifactory_version }}
 
       - name: Wait for Artifactory start
@@ -62,8 +62,8 @@ jobs:
         with:
           dest: "./logs"
 
-      - name: Find any Snyk plugin errors in docker logs
-        run: "! grep -Hrni snyk ./logs | grep -i error"
+      - name: Find any checkmarx plugin errors in docker logs
+        run: "! grep -Hrni checkmarx ./logs | grep -i error"
 
       - name: Dump docker logs (on success)
         uses: jwalton/gh-docker-logs@v1

@@ -3,20 +3,20 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>io.scs.plugins</groupId>
-    <artifactId>artifactory-scs-security-plugin</artifactId>
+    <groupId>com.checkmarx.plugins</groupId>
+    <artifactId>artifactory-security-plugin</artifactId>
     <version>${revision}</version>
   </parent>
 
-  <groupId>io.scs.plugins.artifactory</groupId>
+  <groupId>com.checkmarx.plugins.artifactory</groupId>
   <artifactId>distribution</artifactId>
   <packaging>pom</packaging>
 
-  <name>Artifactory scs Security :: Distribution</name>
+  <name>Checkmarx Artifactory Security Plugin :: Distribution</name>
 
   <dependencies>
     <dependency>
-      <groupId>io.scs.plugins.artifactory</groupId>
+      <groupId>com.checkmarx.plugins.artifactory</groupId>
       <artifactId>core</artifactId>
       <version>${revision}</version>
     </dependency>

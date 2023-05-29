@@ -3,20 +3,20 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>io.scs.plugins</groupId>
-    <artifactId>artifactory-scs-security-plugin</artifactId>
+    <groupId>com.checkmarx.plugins</groupId>
+    <artifactId>artifactory-security-plugin</artifactId>
     <version>${revision}</version>
   </parent>
 
-  <groupId>io.scs.plugins.artifactory</groupId>
+  <groupId>com.checkmarx.plugins.artifactory</groupId>
   <artifactId>core</artifactId>
   <packaging>jar</packaging>
 
-  <name>Artifactory scs Security :: Core</name>
+  <name>Checkmarx Artifactory Security Plugin :: Core</name>
 
   <dependencies>
     <dependency>
-      <groupId>io.scs</groupId>
+      <groupId>com.checkmarx</groupId>
       <artifactId>sdk</artifactId>
       <version>${revision}</version>
     </dependency>
@@ -61,7 +61,7 @@
             <configuration>
               <appendAssemblyId>false</appendAssemblyId>
               <attach>false</attach>
-              <finalName>artifactory-scs-security-core</finalName>
+              <finalName>artifactory-security-core</finalName>
               <outputDirectory>${project.build.directory}/maven-plugin-assembly</outputDirectory>
               <descriptors>
                 <descriptor>src/assembly/descriptor.xml</descriptor>

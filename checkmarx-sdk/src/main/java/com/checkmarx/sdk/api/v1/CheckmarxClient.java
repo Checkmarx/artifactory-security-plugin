@@ -23,23 +23,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import com.checkmarx.sdk.ScsConfig;
-import org.apache.commons.io.IOUtils;
+import com.checkmarx.sdk.CheckmarxConfig;
 
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-public class scsClient {
-  private static final Logger LOG = LoggerFactory.getLogger(scsClient.class);
+public class CheckmarxClient {
+  private static final Logger LOG = LoggerFactory.getLogger(CheckmarxClient.class);
 
-  private final ScsConfig config;
+  private final CheckmarxConfig config;
   private final HttpClient httpClient;
 
   public void isMalcious(String result) throws Exception
@@ -48,7 +43,6 @@ public class scsClient {
     JSONParser parser = new JSONParser();
     Object obj  = parser.parse(result);
     JSONArray results = (JSONArray) obj;
-//                System.out.println(risks.toJSONString());
 
     for (Object r : results) {
       JSONObject element = (JSONObject) r;
@@ -60,9 +54,9 @@ public class scsClient {
 
     }
   }
-  public scsClient(ScsConfig config) throws Exception {
+  public CheckmarxClient(CheckmarxConfig config) throws Exception {
     this.config = config;
-    LOG.info("creating Scs client");
+    LOG.info("creating checkmarx client");
     var builder = HttpClient.newBuilder()
       .version(HttpClient.Version.HTTP_1_1)
       .connectTimeout(config.timeout);
@@ -88,33 +82,33 @@ public class scsClient {
     LOG.info("built http client");
   }
 
-  public scsResult<NotificationSettings> getNotificationSettings(String org) throws java.io.IOException, java.lang.InterruptedException {
-    HttpRequest request = ScsHttpRequestBuilder.create(config)
+  public CheckmarxResult<NotificationSettings> getNotificationSettings(String org) throws java.io.IOException, java.lang.InterruptedException {
+    HttpRequest request = CheckmarxHttpRequestBuilder.create(config)
       .withPath(String.format(
         "user/me/notification-settings/org/%s",
         URLEncoder.encode(org, UTF_8)
       ))
       .build();
-    LOG.info("getNotificationSettings created ScsHttpRequestBuilder");
+    LOG.info("getNotificationSettings created CheckmarxHttpRequestBuilder");
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     LOG.info("getNotificationSettings sent response");
-    return scsResult.createResult(response, NotificationSettings.class);
+    return CheckmarxResult.createResult(response, NotificationSettings.class);
   }
 
-  public scsResult<TestResult> testMaven(String groupId, String artifactId, String version) throws Exception {
+  public CheckmarxResult<TestResult> testMaven(String groupId, String artifactId, String version) throws Exception {
     String type = "mvn";
     String pkgName = String.format("%s:%s",groupId,artifactId);
     return getQueryResults(pkgName, version, type);
   }
 
-  public scsResult<TestResult> testNpm(String packageName, String version) throws Exception {
+  public CheckmarxResult<TestResult> testNpm(String packageName, String version) throws Exception {
 
       String type = "npm";
     return getQueryResults(packageName, version, type);
   }
 
-  public scsResult<TestResult> testRubyGems(String gemName, String version, Optional<String> organisation) throws IOException, InterruptedException {
-    HttpRequest request = ScsHttpRequestBuilder.create(config)
+  public CheckmarxResult<TestResult> testRubyGems(String gemName, String version, Optional<String> organisation) throws IOException, InterruptedException {
+    HttpRequest request = CheckmarxHttpRequestBuilder.create(config)
       .withPath(String.format(
         "test/rubygems/%s/%s",
         URLEncoder.encode(gemName, UTF_8),
@@ -123,17 +117,17 @@ public class scsClient {
       .withQueryParam("org", organisation)
       .build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    return scsResult.createResult(response, TestResult.class);
+    return CheckmarxResult.createResult(response, TestResult.class);
   }
 
 
-  public scsResult<TestResult> testPip(String packageName, String version) throws Exception {
+  public CheckmarxResult<TestResult> testPip(String packageName, String version) throws Exception {
 
     String type = "pypi";
     return getQueryResults(packageName, version, type);
   }
 
-  public scsResult<TestResult> testNugget(String packageName, String version) throws Exception {
+  public CheckmarxResult<TestResult> testNugget(String packageName, String version) throws Exception {
 
     String type = "nuget";
     return getQueryResults(packageName, version, type);
@@ -163,10 +157,10 @@ public class scsClient {
   }
 
   @NotNull
-  private scsResult<TestResult> getQueryResults(String packageName, String version, String type) throws Exception {
+  private CheckmarxResult<TestResult> getQueryResults(String packageName, String version, String type) throws Exception {
     String str = String.format("[{\"type\":\"%s\",\"name\":\"%s\",\"version\":\"%s\"}]", type, packageName, version);
 
-    HttpRequest request = ScsHttpRequestBuilder.create(config)
+    HttpRequest request = CheckmarxHttpRequestBuilder.create(config)
       .build(HttpRequest.BodyPublishers.ofString(str));
     HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
     LOG.debug("sent request to api and got response " + response);
@@ -179,8 +173,7 @@ public class scsClient {
 
     isMalcious(decodedResponse);
 
-    //beware that it expects HttpResponse<String> and you provided <InputStream>
-    return scsResult.createResult(response, decodedResponse, response.statusCode(), TestResult.class);
+    return CheckmarxResult.createResult(response, decodedResponse, response.statusCode(), TestResult.class);
 
   }
 

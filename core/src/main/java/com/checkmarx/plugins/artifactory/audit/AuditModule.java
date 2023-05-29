@@ -18,7 +18,6 @@ public class AuditModule {
   private static final Logger LOG = LoggerFactory.getLogger(AuditModule.class);
 
   public AuditModule() {
-    //squid:S1186
   }
 
   public void logPropertyUpdate(@Nullable User user, @Nonnull ItemInfo itemInfo, String propertyName, String[] propertyValues) {

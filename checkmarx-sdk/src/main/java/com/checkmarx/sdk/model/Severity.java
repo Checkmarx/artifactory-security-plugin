@@ -1,7 +1,7 @@
 package com.checkmarx.sdk.model;
 import com.fasterxml.jackson.annotation.JsonValue;
 /**
- * The scs defined severity level: "critical", "high", "medium" or "low".
+ * The defined severity level: "critical", "high", "medium" or "low".
  */
 public enum Severity {
   LOW("low"),

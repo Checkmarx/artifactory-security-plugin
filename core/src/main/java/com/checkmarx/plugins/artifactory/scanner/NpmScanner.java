@@ -2,9 +2,9 @@ package com.checkmarx.plugins.artifactory.scanner;
 
 import com.checkmarx.plugins.artifactory.configuration.ConfigurationModule;
 import com.checkmarx.plugins.artifactory.exception.CannotScanException;
-import com.checkmarx.plugins.artifactory.exception.ScsAPIFailureException;
-import com.checkmarx.sdk.api.v1.scsClient;
-import com.checkmarx.sdk.api.v1.scsResult;
+import com.checkmarx.plugins.artifactory.exception.CheckmarxAPIFailureException;
+import com.checkmarx.sdk.api.v1.CheckmarxClient;
+import com.checkmarx.sdk.api.v1.CheckmarxResult;
 import com.checkmarx.sdk.model.TestResult;
 import org.artifactory.fs.FileLayoutInfo;
 import org.artifactory.repo.RepoPath;
@@ -22,11 +22,11 @@ class NpmScanner implements PackageScanner {
   private static final Logger LOG = getLogger(NpmScanner.class);
 
   private final ConfigurationModule configurationModule;
-  private final com.checkmarx.sdk.api.v1.scsClient scsClient;
+  private final CheckmarxClient checkmarxClient;
 
-  NpmScanner(ConfigurationModule configurationModule, scsClient scsClient) {
+  NpmScanner(ConfigurationModule configurationModule, CheckmarxClient checkmarxClient) {
     this.configurationModule = configurationModule;
-    this.scsClient = scsClient;
+    this.checkmarxClient = checkmarxClient;
   }
 
   public static Optional<PackageURLDetails> getPackageDetailsFromUrl(String repoPath) {
@@ -46,22 +46,20 @@ class NpmScanner implements PackageScanner {
     PackageURLDetails details = getPackageDetailsFromUrl(repoPath.toString())
       .orElseThrow(() -> new CannotScanException("Package details not provided."));
 
-    scsResult<TestResult> result;
+    CheckmarxResult<TestResult> result;
     try {
-      result = scsClient.testNpm(
+      result = checkmarxClient.testNpm(
         details.name,
         details.version
       );
     } catch (Exception e) {
       if (!(e.toString().contains("Unsafe package")))
           LOG.error("error in scan npm package module npmscanner: " + e);
-      throw new ScsAPIFailureException(e);
+      throw new CheckmarxAPIFailureException(e);
     }
 
-    TestResult testResult = result.get().orElseThrow(() -> new ScsAPIFailureException(result));
-//    testResult.packageDetailsURL = getPackageDetailsURL(details);
+    TestResult testResult = result.get().orElseThrow(() -> new CheckmarxAPIFailureException(result));
     return testResult;
-//    return null;
   }
 
   public static class PackageURLDetails {

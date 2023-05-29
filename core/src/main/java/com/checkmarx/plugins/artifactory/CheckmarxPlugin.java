@@ -1,22 +1,14 @@
 package com.checkmarx.plugins.artifactory;
 
 import com.checkmarx.plugins.artifactory.audit.AuditModule;
-import com.checkmarx.plugins.artifactory.configuration.ArtifactProperty;
 import com.checkmarx.plugins.artifactory.configuration.ConfigurationModule;
-import com.checkmarx.plugins.artifactory.exception.CannotScanException;
-import com.checkmarx.plugins.artifactory.exception.ScsAPIFailureException;
-import com.checkmarx.plugins.artifactory.exception.ScsRuntimeException;
+import com.checkmarx.plugins.artifactory.exception.CheckmarxRuntimeException;
 import com.checkmarx.plugins.artifactory.scanner.ScannerModule;
-import com.checkmarx.sdk.ScsConfig;
-import com.checkmarx.sdk.api.v1.scsClient;
-import com.checkmarx.sdk.api.v1.scsResult;
+import com.checkmarx.sdk.CheckmarxConfig;
+import com.checkmarx.sdk.api.v1.CheckmarxClient;
+import com.checkmarx.sdk.api.v1.CheckmarxResult;
 import com.checkmarx.sdk.model.NotificationSettings;
-import org.artifactory.exception.CancelException;
-import org.artifactory.fs.ItemInfo;
-import org.artifactory.repo.RepoPath;
 import org.artifactory.repo.Repositories;
-import org.artifactory.request.Request;
-import org.artifactory.security.User;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,19 +23,19 @@ import java.util.Properties;
 import static com.checkmarx.plugins.artifactory.configuration.PluginConfiguration.*;
 import static java.lang.String.format;
 
-public class ScSPlugin {
+public class CheckmarxPlugin {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ScSPlugin.class);
-  private static final String API_USER_AGENT = "scs-artifactory-plugin/";
+  private static final Logger LOG = LoggerFactory.getLogger(CheckmarxPlugin.class);
+  private static final String API_USER_AGENT = "checkmarx-artifactory-plugin/";
 
   private ConfigurationModule configurationModule;
   private AuditModule auditModule;
   private ScannerModule scannerModule;
 
-  ScSPlugin() {
+  CheckmarxPlugin() {
   }
 
-  public ScSPlugin(@Nonnull Repositories repositories, File pluginsDirectory) {
+  public CheckmarxPlugin(@Nonnull Repositories repositories, File pluginsDirectory) {
     try {
       LOG.info("Loading and validating plugin properties...");
       Properties properties = PropertyLoader.loadProperties(pluginsDirectory);
@@ -60,62 +52,17 @@ public class ScSPlugin {
         token = "no token configured";
       }
       LOG.debug("Token:" + token);
-      final scsClient scsClient = createScsClient(configurationModule, pluginVersion);
-      LOG.debug("finished creating scs client");
+      final CheckmarxClient checkmarxClient = createCheckmarxClient(configurationModule, pluginVersion);
+      LOG.debug("finished creating checkmarx client");
       LOG.debug("creating audit module");
       auditModule = new AuditModule();
       LOG.debug("fnished creating audit module");
       LOG.debug("creating scanner module");
-      scannerModule = new ScannerModule(configurationModule, repositories, scsClient);
+      scannerModule = new ScannerModule(configurationModule, repositories, checkmarxClient);
       LOG.debug("finished creating scanner module");
       LOG.info("Plugin version: {}", pluginVersion);
     } catch (Exception ex) {
-      throw new ScsRuntimeException("scs plugin could not be initialized!", ex);
-    }
-  }
-
-  /**
-   * Logs update event for following artifact properties:
-   * <ul>
-   * <li>{@link ArtifactProperty#ISSUE_LICENSES_FORCE_DOWNLOAD}</li>
-   * <li>{@link ArtifactProperty#ISSUE_LICENSES_FORCE_DOWNLOAD_INFO}</li>
-   * <li>{@link ArtifactProperty#ISSUE_VULNERABILITIES_FORCE_DOWNLOAD}</li>
-   * <li>{@link ArtifactProperty#ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO}</li>
-   * </ul>
-   * <p>
-   * Extension point: {@code storage.afterPropertyCreate}.
-   */
-  public void handleAfterPropertyCreateEvent(User user, ItemInfo itemInfo, String propertyName, String[] propertyValues) {
-    LOG.debug("Handle 'afterPropertyCreate' event for: {}", itemInfo);
-    auditModule.logPropertyUpdate(user, itemInfo, propertyName, propertyValues);
-  }
-
-  /**
-   * Scans an artifact for issues (vulnerability or license).
-   * <p>
-   * Extension point: {@code download.beforeDownload}.
-   */
-  public void handleBeforeDownloadEvent(RepoPath repoPath, Request request) {
-    LOG.debug("Handle 'beforeDownload' event for: {}", repoPath);
-    try {
-      scannerModule.scanArtifact(repoPath,request);
-    } catch (CannotScanException e) {
-      LOG.debug("Artifact cannot be scanned. {} {}", e.getMessage(), repoPath);
-    } catch (ScsAPIFailureException e) {
-      final String blockOnApiFailurePropertyKey = SCANNER_BLOCK_ON_API_FAILURE.propertyKey();
-      final String blockOnApiFailure = configurationModule.getPropertyOrDefault(SCANNER_BLOCK_ON_API_FAILURE);
-      final String causeMessage = Optional.ofNullable(e.getCause())
-        .map(Throwable::getMessage)
-        .map(m -> e.getMessage() + " " + m)
-        .orElseGet(e::getMessage);
-
-      String message = format("Artifact scan failed. %s %s", causeMessage, repoPath);
-      if ("true".equals(blockOnApiFailure)) {
-        LOG.debug("Blocking download. Plugin Property \"{}\" is \"true\". {}", blockOnApiFailurePropertyKey, repoPath);
-        throw new CancelException(message, 500);
-      }
-      LOG.debug(message);
-
+      throw new CheckmarxRuntimeException("checkmarx plugin could not be initialized!", ex);
     }
   }
 
@@ -123,10 +70,10 @@ public class ScSPlugin {
     try {
       configurationModule.validate();
     } catch (Exception ex) {
-      throw new ScsRuntimeException("scs Plugin Configuration is not valid!", ex);
+      throw new CheckmarxRuntimeException("checkmarx Plugin Configuration is not valid!", ex);
     }
 
-    LOG.debug("scs Plugin Configuration:");
+    LOG.debug("checkmarx Plugin Configuration:");
     configurationModule.getPropertyEntries().stream()
       .filter(entry -> !API_TOKEN.propertyKey().equals(entry.getKey()))
       .map(entry -> entry.getKey() + "=" + entry.getValue())
@@ -134,7 +81,7 @@ public class ScSPlugin {
       .forEach(LOG::debug);
   }
 
-  private scsClient createScsClient(@Nonnull ConfigurationModule configurationModule, String pluginVersion) throws Exception {
+  private CheckmarxClient createCheckmarxClient(@Nonnull ConfigurationModule configurationModule, String pluginVersion) throws Exception {
     final String token = configurationModule.getPropertyOrDefault(API_TOKEN);
     String baseUrl = configurationModule.getPropertyOrDefault(API_URL);
     boolean trustAllCertificates = false;
@@ -155,7 +102,7 @@ public class ScSPlugin {
     Integer httpProxyPort = Integer.parseInt(configurationModule.getPropertyOrDefault(HTTP_PROXY_PORT));
     Duration timeout = Duration.ofMillis(Integer.parseInt(configurationModule.getPropertyOrDefault(API_TIMEOUT)));
 
-    var config = ScsConfig.newBuilder()
+    var config = CheckmarxConfig.newBuilder()
       .setBaseUrl(baseUrl)
       .setToken(token)
       .setUserAgent(API_USER_AGENT + pluginVersion)
@@ -170,21 +117,17 @@ public class ScSPlugin {
     LOG.debug("config.httpProxyHost: " + config.httpProxyHost);
     LOG.debug("config.httpProxyPort: " + config.httpProxyPort);
 
-    final scsClient scsClient = new scsClient(config);
-    LOG.info("created scsClient");
+    final CheckmarxClient checkmarxClient = new CheckmarxClient(config);
+    LOG.info("created checkmarxClient");
     LOG.info("got configuration modules property or default");
-//    LOG.info("getting notification settings");
-//    var res = scsClient.getNotificationSettings(org);
-//    LOG.info("got notification settings");
-//    handleResponse(res);
     LOG.info("handle Response finished");
 
-    return scsClient;
+    return checkmarxClient;
   }
 
-  void handleResponse(scsResult<NotificationSettings> res) {
+  void handleResponse(CheckmarxResult<NotificationSettings> res) {
     if (res.isSuccessful()) {
-      LOG.info("Scs token check successful - response status code {}", res.statusCode);
+      LOG.info("checkmarx token check successful - response status code {}", res.statusCode);
     } else {
       String info = "";
       if (null != res.response) {
@@ -194,11 +137,11 @@ public class ScSPlugin {
         info += "\nResponse Status: " + res.response.statusCode();
         info += "\nResponse Body: " + res.response.body();
       }
-      LOG.warn("scs token check unsuccessful - response status code {}{}", res.statusCode, info);
+      LOG.warn("checkmarx token check unsuccessful - response status code {}{}", res.statusCode, info);
       if (res.statusCode == 401) {
-        throw new ScsRuntimeException(format("%s is not valid.%s", API_TOKEN.propertyKey(), info));
+        throw new CheckmarxRuntimeException(format("%s is not valid.%s", API_TOKEN.propertyKey(), info));
       } else {
-        throw new ScsRuntimeException(format("%s could not be verified.%s", API_TOKEN.propertyKey(), info));
+        throw new CheckmarxRuntimeException(format("%s could not be verified.%s", API_TOKEN.propertyKey(), info));
       }
     }
   }

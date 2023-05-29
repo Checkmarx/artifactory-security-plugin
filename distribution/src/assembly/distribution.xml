@@ -13,15 +13,15 @@
   </fileSets>
   <files>
     <file>
-      <source>../core/src/main/groovy/io/scs/plugins/artifactory/scsSecurityPlugin.groovy</source>
+      <source>../core/src/main/groovy/com/checkmarx/plugins/artifactory/CheckmarxSecurityPlugin.groovy</source>
       <outputDirectory>plugins</outputDirectory>
     </file>
     <file>
-      <source>../core/src/main/groovy/io/scs/plugins/artifactory/scsSecurityPlugin.properties</source>
+      <source>../core/src/main/groovy/com/checkmarx/plugins/artifactory/CheckmarxSecurityPlugin.properties</source>
       <outputDirectory>plugins</outputDirectory>
     </file>
     <file>
-      <source>../core/src/main/groovy/io/scs/plugins/artifactory/scsSecurityPlugin.version</source>
+      <source>../core/src/main/groovy/com/checkmarx/plugins/artifactory/CheckmarxSecurityPlugin.version</source>
       <outputDirectory>plugins/lib</outputDirectory>
       <filtered>true</filtered>
     </file>

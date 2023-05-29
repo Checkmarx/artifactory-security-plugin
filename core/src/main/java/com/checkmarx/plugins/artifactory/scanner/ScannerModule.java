@@ -4,7 +4,7 @@ import com.checkmarx.plugins.artifactory.configuration.ArtifactProperty;
 import com.checkmarx.plugins.artifactory.configuration.ConfigurationModule;
 import com.checkmarx.plugins.artifactory.configuration.PluginConfiguration;
 import com.checkmarx.plugins.artifactory.exception.CannotScanException;
-import com.checkmarx.sdk.api.v1.scsClient;
+import com.checkmarx.sdk.api.v1.CheckmarxClient;
 import com.checkmarx.sdk.model.Issue;
 import com.checkmarx.sdk.model.Severity;
 import com.checkmarx.sdk.model.TestResult;
@@ -35,14 +35,14 @@ public class ScannerModule {
 
   private final NuggetScanner nuggetScanner;
 
-  public ScannerModule(@Nonnull ConfigurationModule configurationModule, @Nonnull Repositories repositories, @Nonnull scsClient scsClient) {
+  public ScannerModule(@Nonnull ConfigurationModule configurationModule, @Nonnull Repositories repositories, @Nonnull CheckmarxClient checkmarxClient) {
     this.configurationModule = requireNonNull(configurationModule);
     this.repositories = requireNonNull(repositories);
 
-    mavenScanner = new MavenScanner(configurationModule, scsClient);
-    npmScanner = new NpmScanner(configurationModule, scsClient);
-    pythonScanner = new PythonScanner(configurationModule, scsClient);
-    nuggetScanner = new NuggetScanner(configurationModule, scsClient);
+    mavenScanner = new MavenScanner(configurationModule, checkmarxClient);
+    npmScanner = new NpmScanner(configurationModule, checkmarxClient);
+    pythonScanner = new PythonScanner(configurationModule, checkmarxClient);
+    nuggetScanner = new NuggetScanner(configurationModule, checkmarxClient);
 
   }
 
@@ -88,17 +88,6 @@ public class ScannerModule {
     throw new CannotScanException("Artifact is not supported.");
   }
 
-//  protected void updateProperties(RepoPath repoPath, TestResult testResult) {
-//    repositories.setProperty(repoPath, ISSUE_VULNERABILITIES.propertyKey(), getIssuesAsFormattedString(testResult.issues.vulnerabilities));
-//    repositories.setProperty(repoPath, ISSUE_LICENSES.propertyKey(), getIssuesAsFormattedString(testResult.issues.licenses));
-//    repositories.setProperty(repoPath, ISSUE_URL.propertyKey(), testResult.packageDetailsURL);
-//
-//    setDefaultArtifactProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD, "false");
-//    setDefaultArtifactProperty(repoPath, ISSUE_VULNERABILITIES_FORCE_DOWNLOAD_INFO, "");
-//    setDefaultArtifactProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD, "false");
-//    setDefaultArtifactProperty(repoPath, ISSUE_LICENSES_FORCE_DOWNLOAD_INFO, "");
-//  }
-
   private void setDefaultArtifactProperty(RepoPath repoPath, ArtifactProperty property, String value) {
     String key = property.propertyKey();
     if (!repositories.hasProperty(repoPath, key)) {
@@ -126,43 +115,5 @@ public class ScannerModule {
 
     return format("%d critical, %d high, %d medium, %d low", countCriticalSeverities, countHighSeverities, countMediumSeverities, countLowSeverities);
   }
-
-//  protected void validateVulnerabilityIssues(TestResult testResult, RepoPath repoPath) {
-//    final String vulnerabilitiesForceDownloadProperty = ISSUE_VULNERABILITIES_FORCE_DOWNLOAD.propertyKey();
-//    final String vulnerabilitiesForceDownload = repositories.getProperty(repoPath, vulnerabilitiesForceDownloadProperty);
-//    final boolean forceDownload = "true".equalsIgnoreCase(vulnerabilitiesForceDownload);
-//    if (forceDownload) {
-//      LOG.debug("Allowing download. Artifact Property \"{}\" is \"true\". {}", vulnerabilitiesForceDownloadProperty, repoPath);
-//      return;
-//    }
-//
-//    Severity vulnerabilityThreshold = Severity.of(configurationModule.getPropertyOrDefault(PluginConfiguration.SCANNER_VULNERABILITY_THRESHOLD));
-//    if (vulnerabilityThreshold == Severity.LOW) {
-//      if (!testResult.issues.vulnerabilities.isEmpty()) {
-//        throw new CancelException(format("Artifact has vulnerabilities. %s", repoPath), 403);
-//      }
-//    } else if (vulnerabilityThreshold == Severity.MEDIUM) {
-//      long count = testResult.issues.vulnerabilities.stream()
-//        .filter(vulnerability -> vulnerability.severity == Severity.MEDIUM || vulnerability.severity == Severity.HIGH || vulnerability.severity == Severity.CRITICAL)
-//        .count();
-//      if (count > 0) {
-//        throw new CancelException(format("Artifact has vulnerabilities with medium, high or critical severity. %s", repoPath), 403);
-//      }
-//    } else if (vulnerabilityThreshold == Severity.HIGH) {
-//      long count = testResult.issues.vulnerabilities.stream()
-//        .filter(vulnerability -> vulnerability.severity == Severity.HIGH || vulnerability.severity == Severity.CRITICAL)
-//        .count();
-//      if (count > 0) {
-//        throw new CancelException(format("Artifact has vulnerabilities with high or critical severity. %s", repoPath), 403);
-//      }
-//    } else if (vulnerabilityThreshold == Severity.CRITICAL) {
-//      long count = testResult.issues.vulnerabilities.stream()
-//        .filter(vulnerability -> vulnerability.severity == Severity.CRITICAL)
-//        .count();
-//      if (count > 0) {
-//        throw new CancelException(format("Artifact has vulnerabilities with critical severity. %s", repoPath), 403);
-//      }
-//    }
-//  }
 
 }

@@ -9,7 +9,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch sources
+      - name: Fetch source
         uses: actions/checkout@v2
 
       - name: Setup JDK 11
